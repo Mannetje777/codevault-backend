@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeVault Snippets</title>
+  <!-- Vue.js via CDN -->
+  <script src="https://unpkg.com/vue@3"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { margin-bottom: 20px; }
+    input, textarea { display: block; margin: 5px 0; width: 300px; }
+    ul { list-style-type: none; padding: 0; }
+    li { background: #f4f4f4; margin: 5px 0; padding: 10px; }
+    .code { white-space: pre-wrap; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>CodeVault Snippets</h1>
+
+  <!-- Formulier om nieuwe snippet toe te voegen -->
+  <form @submit.prevent="addSnippet">
+    <label>Taal:</label>
+    <input v-model="newLanguage" type="text" placeholder="Bijv. Python" required />
+
+    <label>Code snippet:</label>
+    <textarea v-model="newCode" placeholder="Voer je code hier in" required></textarea>
+
+    <button type="submit">Snippet opslaan</button>
+  </form>
+
+  <!-- Lijst van snippets -->
+  <ul>
+    <li v-for="snippet in snippets" :key="snippet.id">
+      <strong>{{ snippet.language }}</strong>
+      <pre class="code">{{ snippet.code }}</pre>
+    </li>
+  </ul>
+
+  <!-- Link naar statistiekenpagina -->
+  <p><a href="stats.html">Bekijk statistieken &#187;</a></p>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          snippets: [],      // bestaande snippets
+          newCode: "",       // inhoud van nieuwe snippet
+          newLanguage: ""    // taal van nieuwe snippet
+        };
+      },
+      methods: {
+        // Haal alle snippets op van de backend
+        fetchSnippets() {
+          fetch("https://codevault-backend-igg8.onrender.com/snippets")
+            .then(response => response.json())
+            .then(data => {
+              this.snippets = data;
+            })
+            .catch(err => console.error("Error fetching snippets:", err));
+        },
+        // Voeg een nieuwe snippet toe via de backend
+        addSnippet() {
+          if (!this.newCode || !this.newLanguage) {
+            return;
+          }
+          // Maak snippet object
+          const newSnippet = {
+            code: this.newCode,
+            language: this.newLanguage
+          };
+          // Stuur POST request naar backend
+          fetch("https://codevault-backend-igg8.onrender.com/snippets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newSnippet)
+          })
+            .then(response => response.json())
+            .then(savedSnippet => {
+              // Voeg de nieuw opgeslagen snippet toe aan de lijst
+              this.snippets.push(savedSnippet);
+              // Wis het formulier
+              this.newCode = "";
+              this.newLanguage = "";
+            })
+            .catch(err => console.error("Error saving snippet:", err));
+        }
+      },
+      mounted() {
+        // Haal bestaande snippets op zodra de pagina geladen is
+        this.fetchSnippets();
+      }
+    }).mount("body");
+  </script>
+</body>
+</html>

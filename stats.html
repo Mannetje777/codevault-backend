@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeVault Statistieken</title>
+  <!-- Vue.js CDN -->
+  <script src="https://unpkg.com/vue@3"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+    canvas { max-width: 600px; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <h1>Statistieken</h1>
+  <p>Aantal snippets per programmeertaal:</p>
+  <!-- Canvas element voor de grafiek -->
+  <canvas id="statsChart" width="400" height="400"></canvas>
+
+  <!-- Link terug naar de hoofdpagina -->
+  <p><a href="index.html">&#171; Terug naar Snippets</a></p>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          statsData: {}  // object met telling per taal, bv: { "Python": 2, "JavaScript": 1 }
+        };
+      },
+      methods: {
+        fetchStats() {
+          fetch("https://codevault-backend-igg8.onrender.com/stats")
+            .then(response => response.json())
+            .then(data => {
+              this.statsData = data;
+              // Als we data hebben, teken de grafiek
+              const labels = Object.keys(this.statsData);
+              const values = Object.values(this.statsData);
+              const ctx = document.getElementById("statsChart").getContext("2d");
+              // Maak een taartdiagram met de taalverdeling
+              new Chart(ctx, {
+                type: "pie",
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    data: values,
+                    backgroundColor: ["#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#76b7b2", "#edc949"]
+                  }]
+                },
+                options: {
+                  plugins: {
+                    legend: { position: "bottom" }
+                  }
+                }
+              });
+            })
+            .catch(err => console.error("Error fetching stats:", err));
+        }
+      },
+      mounted() {
+        this.fetchStats();
+      }
+    }).mount("body");
+  </script>
+</body>
+</html>
