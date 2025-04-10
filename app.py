@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify  
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import sqlite3  
 
 app = Flask(__name__)  
+CORS(app)
 
 def init_db():  
     conn = sqlite3.connect('snippets.db')  
@@ -33,7 +35,6 @@ def add_snippet():
     conn.close()
     return jsonify({"status": "success"})  
 
-# Deze route voeg je toe voor statistieken:
 @app.route('/stats', methods=['GET'])
 def snippet_stats():
     conn = sqlite3.connect('snippets.db')
